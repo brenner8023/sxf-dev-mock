@@ -1,14 +1,14 @@
 {
-  "main.css": "/static/css/main.101f31f3.chunk.css",
-  "main.js": "/static/js/main.ab718245.chunk.js",
-  "main.js.map": "/static/js/main.ab718245.chunk.js.map",
-  "runtime~main.js": "/static/js/runtime~main.a8a9905a.js",
-  "runtime~main.js.map": "/static/js/runtime~main.a8a9905a.js.map",
-  "static/js/2.4952e05c.chunk.js": "/static/js/2.4952e05c.chunk.js",
-  "static/js/2.4952e05c.chunk.js.map": "/static/js/2.4952e05c.chunk.js.map",
-  "index.html": "/index.html",
-  "precache-manifest.c650147823eb318fde0f62539d3444a6.js": "/precache-manifest.c650147823eb318fde0f62539d3444a6.js",
-  "service-worker.js": "/service-worker.js",
-  "static/css/main.101f31f3.chunk.css.map": "/static/css/main.101f31f3.chunk.css.map",
-  "static/media/iconfont.css": "/static/media/iconfont.f5f9929c.woff"
+  "main.css": "/gdut-nav/static/css/main.bb000b70.chunk.css",
+  "main.js": "/gdut-nav/static/js/main.bd37b028.chunk.js",
+  "main.js.map": "/gdut-nav/static/js/main.bd37b028.chunk.js.map",
+  "runtime~main.js": "/gdut-nav/static/js/runtime~main.f43f44cc.js",
+  "runtime~main.js.map": "/gdut-nav/static/js/runtime~main.f43f44cc.js.map",
+  "static/js/2.4952e05c.chunk.js": "/gdut-nav/static/js/2.4952e05c.chunk.js",
+  "static/js/2.4952e05c.chunk.js.map": "/gdut-nav/static/js/2.4952e05c.chunk.js.map",
+  "index.html": "/gdut-nav/index.html",
+  "precache-manifest.33c5c0753b9b4015d08bb05077b0f06a.js": "/gdut-nav/precache-manifest.33c5c0753b9b4015d08bb05077b0f06a.js",
+  "service-worker.js": "/gdut-nav/service-worker.js",
+  "static/css/main.bb000b70.chunk.css.map": "/gdut-nav/static/css/main.bb000b70.chunk.css.map",
+  "static/media/iconfont.css": "/gdut-nav/static/media/iconfont.f5f9929c.woff"
 }
