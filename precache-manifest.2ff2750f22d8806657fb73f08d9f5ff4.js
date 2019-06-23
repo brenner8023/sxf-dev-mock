@@ -20,19 +20,19 @@ self.__precacheManifest = [
     "url": "/gdut-nav/static/js/runtime~main.f43f44cc.js"
   },
   {
-    "revision": "ed92c84d6c2d59e65eca",
-    "url": "/gdut-nav/static/js/main.f99072f4.chunk.js"
+    "revision": "3e3beee77cb0a8fcfe4c",
+    "url": "/gdut-nav/static/js/main.7416ca2e.chunk.js"
   },
   {
     "revision": "ae0b72b89335021e0997",
     "url": "/gdut-nav/static/js/2.4952e05c.chunk.js"
   },
   {
-    "revision": "ed92c84d6c2d59e65eca",
-    "url": "/gdut-nav/static/css/main.07a008cf.chunk.css"
+    "revision": "3e3beee77cb0a8fcfe4c",
+    "url": "/gdut-nav/static/css/main.86ae016f.chunk.css"
   },
   {
-    "revision": "11bcc95955c2dee992e187719611dacb",
+    "revision": "153da65c1aa532d874370ec7a48a53d2",
     "url": "/gdut-nav/index.html"
   }
 ];

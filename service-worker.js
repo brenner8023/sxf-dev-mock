@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/gdut-nav/precache-manifest.0b8810427aa774fb2fef8ff068f42427.js"
+  "/gdut-nav/precache-manifest.2ff2750f22d8806657fb73f08d9f5ff4.js"
 );
 
 workbox.clientsClaim();
