@@ -1,43 +1,41 @@
-const fs = require('fs').promises;
+const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 const bodyParser = require('body-parser');
 const chokidar = require('chokidar');
 const { pathToRegexp } = require('path-to-regexp');
 
+import { Application, Request, Response, NextFunction } from 'express';
+export type MockFunction = (req: Request, res: Response, next?: NextFunction) => void;
+export type HandlerType = string | number | any[] | Record<string, any> | MockFunction;
+interface IMockConfig {
+    method: string;
+    url: string;
+    handler: MockFunction;
+}
+
 const OPTIONAL_METHODS = ['get', 'post', 'put', 'patch', 'delete'];
 const BODY_METHODS = OPTIONAL_METHODS.filter(method => method !== 'get');
 const rootDir = process.cwd();
 const mockPath = path.resolve(rootDir, 'mock');
-
-import { Application, Request, Response, NextFunction } from 'express';
-
-interface IMockConfig {
-    method: string;
-    url: string;
-    handler: (req: Request, res: Response, next: NextFunction) => void;
-}
-type HandlerType = string | object | Function;
 
 /**
  * 递归读取mock目录下的所有js文件，ts文件
  * @param mockPath 目录的绝对路径
  * @returns mock目录下所有js文件，ts文件路径组成的数组
  */
-async function getMockFiles (mockPath: string) {
-    const mockFiles = await fs.readdir(mockPath);
+function getMockFiles (mockPath: string): string[] {
+    const mockFiles = fs.readdirSync(mockPath);
 
-    return await mockFiles.reduce(async (prev: string[], cur: string) => {
+    return mockFiles.reduce((prev: string[], cur: string) => {
         const curMockPath = path.join(mockPath, cur);
-        const stat = await fs.stat(curMockPath);
+        const stat = fs.statSync(curMockPath);
         const isFile = stat.isFile();
         const isDir = stat.isDirectory();
         const isJsOrTs = ['.ts', '.js'].includes(path.extname(curMockPath));
 
-        prev = await prev;
-
         if (isDir) {
-            let arr = await getMockFiles(curMockPath);
+            let arr = getMockFiles(curMockPath);
             return prev.concat(arr);
         }
         if (isFile && isJsOrTs) {
@@ -50,11 +48,12 @@ async function getMockFiles (mockPath: string) {
 /**
  * 从js或ts文件中获取mock数据配置
  */
-async function getMockConfig () {
-    const mockConfig: { [x: string]: string | object | Function; } = {};
-    const mockFiles = await getMockFiles(mockPath);
+function getMockConfig () {
+    const mockConfig: Record<string, HandlerType> = {};
+    const mockFiles = getMockFiles(mockPath);
 
     mockFiles.forEach((mockFile: string) => {
+        
         const mockData = require(mockFile) || {};
 
         // 清理node对require的缓存，这样才能获取到修改后的mock数据
@@ -62,14 +61,14 @@ async function getMockConfig () {
             delete require.cache[mockFile];
         }
 
-        Object.assign(mockConfig, mockData);
+        Object.assign(mockConfig, mockData.default || mockData);
     });
 
     return mockConfig;
 }
 
 /**
- * 解析返回请求方法和请求path
+ * 解析并返回请求方法和请求path
  * @param api 形如'get /api/users/123'
  */
 function parseApi (api: string) {
@@ -98,7 +97,7 @@ function parseApi (api: string) {
  * @param handler 响应的数据
  */
 function createHandler (method: string, handler: HandlerType) {
-    return function (req: Request, res: Response, next: NextFunction) {
+    return function (req: Request, res: Response, next?: NextFunction) {
         if (!BODY_METHODS.includes(method)) {
             sendData();
         } else {
@@ -131,9 +130,9 @@ function createHandler (method: string, handler: HandlerType) {
 /**
  * 解析mock配置，转为数组，数组元素包含请求方法、请求path，回调函数
  */
-async function parseMockConfig () {
+function parseMockConfig () {
     let mockConfigList: Array<IMockConfig> = [];
-    const mockConfig = await getMockConfig();
+    const mockConfig = getMockConfig();
 
     Object.keys(mockConfig).forEach(api => {
         const handler: HandlerType = mockConfig[api];
@@ -178,22 +177,16 @@ function matchPath (req: Request, mockConfigList: Array<IMockConfig>) {
     return targetMock;
 }
 
-module.exports = async (app: Application) => {
-    let mockConfigList = await parseMockConfig();
+function applyMock (app: Application) {
+    let mockConfigList = parseMockConfig();
     const watcher = chokidar.watch([mockPath]);
-    const watchFiles = new Set();
 
-    watcher.on('all', async (event: string, filePath: string) => {
-
-        /**
-         * chokidar第一次监听时，不调用parseMockConfig
-         */
-        if (!watchFiles.has(filePath)) {
-            watchFiles.add(filePath);
-            return;
-        }
-        console.log(event.toUpperCase(), filePath);
-        mockConfigList = await parseMockConfig();
+    watcher.on('ready', () => {
+        watcher.on('all', (event: string, filePath: string) => {
+            let info = `\n${event.toUpperCase()} ${filePath}`;
+            console.log('\x1B[32m%s\x1B[0m', info);
+            mockConfigList = parseMockConfig();
+       });
     });
 
     app.use((req: Request, res: Response, next: NextFunction) => {
@@ -204,4 +197,24 @@ module.exports = async (app: Application) => {
         }
         return next();
     });
+}
+
+module.exports = (app: Application) => {
+    try {
+        applyMock(app);
+    } catch (e) {
+        console.log(e);
+        console.log('\x1B[31m%s\x1B[0m', '\nFailed to parse mock config.\n');
+
+        const watcher = chokidar.watch([mockPath]);
+
+        watcher.on('ready', () => {
+            watcher.on('all', (event: string, filePath: string) => {
+                let info = `\n${event.toUpperCase()} ${filePath}`;
+                console.log('\x1B[32m%s\x1B[0m', info);
+                watcher.close();
+                applyMock(app);
+            });
+        });
+    }
 };
