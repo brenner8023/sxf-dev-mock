@@ -7,8 +7,8 @@ module.exports = {
   '/api/users/123': foo,
   '/api/foo/bar': bar(),
 
-  // 支持标准 HTTP
-  'GET /api/users': { users: [1, 2] },
+  // 支持mockjs语法
+  'GET /api/users': { 'users|1': [1, 2] },
   'DELETE /api/users': { users: [1, 2] },
 
   // 支持自定义函数，API 参考 express4

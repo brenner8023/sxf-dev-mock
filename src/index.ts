@@ -4,6 +4,7 @@ const assert = require('assert');
 const bodyParser = require('body-parser');
 const chokidar = require('chokidar');
 const { pathToRegexp } = require('path-to-regexp');
+const Mock = require('mockjs');
 
 import { Application, Request, Response, NextFunction } from 'express';
 export type MockFunction = (req: Request, res: Response, next?: NextFunction) => void;
@@ -25,7 +26,7 @@ const mockPath = path.resolve(rootDir, 'mock');
  * @returns mock目录下所有js文件，ts文件路径组成的数组
  */
 function getMockFiles (mockPath: string): string[] {
-    const mockFiles = fs.readdirSync(mockPath);
+    const mockFiles = fs.existsSync(mockPath) ? fs.readdirSync(mockPath) : [];
 
     return mockFiles.reduce((prev: string[], cur: string) => {
         const curMockPath = path.join(mockPath, cur);
@@ -119,7 +120,8 @@ function createHandler (method: string, handler: HandlerType) {
 
         function sendData () {
             if (typeof handler !== 'function') {
-                res.json(handler);
+                const data = Mock.mock(handler);
+                res.json(data);
             } else {
                 handler(req, res, next);
             }
@@ -177,17 +179,21 @@ function matchPath (req: Request, mockConfigList: Array<IMockConfig>) {
     return targetMock;
 }
 
+let watcher: any;
 function applyMock (app: Application) {
     let mockConfigList = parseMockConfig();
-    const watcher = chokidar.watch([mockPath]);
 
-    watcher.on('ready', () => {
-        watcher.on('all', (event: string, filePath: string) => {
-            let info = `\n${event.toUpperCase()} ${filePath}`;
-            console.log('\x1B[32m%s\x1B[0m', info);
-            mockConfigList = parseMockConfig();
-       });
-    });
+    if (!watcher) {
+        watcher = chokidar.watch([mockPath]);
+
+        watcher.on('ready', () => {
+            watcher.on('all', (event: string, filePath: string) => {
+                let info = `\n${event.toUpperCase()} ${filePath}`;
+                console.log('\x1B[32m%s\x1B[0m', info);
+                mockConfigList = parseMockConfig();
+           });
+        });
+    }
 
     app.use((req: Request, res: Response, next: NextFunction) => {
         const match = mockConfigList.length && matchPath(req, mockConfigList);
